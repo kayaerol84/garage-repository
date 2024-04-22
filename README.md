@@ -70,7 +70,7 @@ The application provides the following RESTful endpoints:
 
 Example request:
 ```bash
-curl -X GET "http://localhost:8080/api/reservations/slots?jobType=TIRE_REPLACEMENT&mechanicId=1&date=2023-04-22"
+curl -X GET "http://localhost:8080/api/reservations/slots?jobType=TIRE_REPLACEMENT&mechanicId=1&date=2024-04-23"
 ```
 
 * **POST /api/reservations/appointments**: Create a new appointment.
@@ -80,18 +80,48 @@ curl -X GET "http://localhost:8080/api/reservations/slots?jobType=TIRE_REPLACEME
     {
       "mechanicId": 1,
       "jobType": "GENERAL_CHECK",
-      "startTime": "2023-04-01T10:00:00"
+      "startTime": "2024-04-23T10:00:00"
     }
     ```
 Example request:
 ```bash
 curl -X POST -H "Content-Type: application/json" -d 
-' { "mechanicId": 1, "jobType": "GENERAL_CHECK", "startTime": "2023-04-01T10:00:00"}' 
+' { "mechanicId": 1, "jobType": "GENERAL_CHECK", "startTime": "2024-04-23T10:00:00"}' 
 "http://localhost:8080/api/reservations/appointments"
 ```
 
 ### ADMIN Endpoints
+* **POST** **/admin/garage/mechanics**: Creates a new mechanic
+  * Body: 
+  ```json
+  {
+    "name": "Third Mechanic",
+    "offDays": [
+        "TUESDAY",
+        "WEDNESDAY"
+    ]
+  }
+  ```
+  
+Example request:
 
+```bash
+curl --location 'http://localhost:8080/admin/garage/mechanics' \
+--header 'Content-Type: application/json' \
+--data '{
+    "name": "Third Mechanic",
+    "offDays": [
+        "TUESDAY",
+        "WEDNESDAY"
+    ]
+}'
+```
+* **GET /admin/garage/operatingHours**: To check operating hours configuration
+
+Example Request: 
+```bash
+curl --location 'http://localhost:8080/admin/garage/operatingHours'
+```
 
 ### Running Tests
 
