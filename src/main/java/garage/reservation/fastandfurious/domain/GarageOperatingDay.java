@@ -13,4 +13,8 @@ public class GarageOperatingDay {
     LocalTime openingTime;
     LocalTime closingTime;
     List<Appointment> appointments;
+
+    public boolean isOff() {
+        return openingTime.equals(closingTime);
+    }
 }

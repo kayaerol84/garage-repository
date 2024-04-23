@@ -2,14 +2,13 @@ package garage.reservation.fastandfurious.resource;
 
 import garage.reservation.fastandfurious.domain.Appointment;
 import garage.reservation.fastandfurious.domain.GarageOperationType;
-import garage.reservation.fastandfurious.domain.Mechanic;
 import garage.reservation.fastandfurious.domain.Slot;
+import garage.reservation.fastandfurious.resource.dto.AppointmentResponse;
 import garage.reservation.fastandfurious.resource.dto.AvailableSlotResponse;
 import garage.reservation.fastandfurious.resource.dto.AvailableSlotsResponse;
 import garage.reservation.fastandfurious.resource.dto.CreateAppointmentRequest;
 import garage.reservation.fastandfurious.service.ReservationService;
 import garage.reservation.fastandfurious.service.TimeService;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -19,13 +18,13 @@ import org.springframework.http.ResponseEntity;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Collections;
 import java.util.List;
 import static garage.reservation.fastandfurious.domain.DomainTestHelper.buildAppointment;
 import static garage.reservation.fastandfurious.domain.DomainTestHelper.buildMechanic;
 import static garage.reservation.fastandfurious.domain.DomainTestHelper.buildSlot;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
@@ -55,7 +54,10 @@ class ReservationResourceTest {
         when(reservationService.findAvailableSlots(GarageOperationType.GENERAL_CHECK, mechanicId, MONDAY_22_04)).thenReturn(availableSlots);
 
         //execute
-        ResponseEntity<AvailableSlotsResponse> slots = reservationResource.getAvailableSlots("GENERAL_CHECK", mechanicId, MONDAY_22_04);
+        AvailableSlotsResponse slots = reservationResource.getAvailableSlots("GENERAL_CHECK", mechanicId, MONDAY_22_04).getBody();
+
+        assertNotNull(slots);
+        assertEquals(1, slots.getAvailableSlots().size());
     }
 
     @Test
@@ -77,7 +79,7 @@ class ReservationResourceTest {
     }
 
     @Test
-    void createReservationShouldReturn() {
+    void createReservationShouldReturnAppointment() {
 
         // given
         LocalDateTime startTime = LocalDateTime.of(MONDAY_22_04, LocalTime.of(12, 0));
@@ -92,6 +94,12 @@ class ReservationResourceTest {
         when(reservationService.createAppointment(mechanicId, GarageOperationType.GENERAL_CHECK, startTime)).thenReturn(appointment);
 
         // execute
-        reservationResource.createReservation(request);
+        AppointmentResponse result = reservationResource.createReservation(request).getBody();
+
+        // verify
+        assertNotNull(result);
+        assertEquals(GarageOperationType.GENERAL_CHECK.name(), result.getGarageOperationType());
+        assertEquals(mechanicId, result.getMechanicId());
+        assertEquals(startTime.plusHours((long) GarageOperationType.GENERAL_CHECK.getDurationHours()), result.getEndTime());
     }
 }

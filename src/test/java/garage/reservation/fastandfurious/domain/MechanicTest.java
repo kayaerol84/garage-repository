@@ -3,8 +3,6 @@ package garage.reservation.fastandfurious.domain;
 import org.junit.jupiter.api.Test;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
-import java.time.temporal.ChronoUnit;
-import java.time.temporal.TemporalUnit;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
 

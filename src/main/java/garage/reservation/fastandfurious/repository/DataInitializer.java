@@ -40,7 +40,8 @@ public class DataInitializer {
                 buildOperatingHours(DayOfWeek.WEDNESDAY, openingTime, closeTime),
                 buildOperatingHours(DayOfWeek.THURSDAY, openingTime, closeTime),
                 buildOperatingHours(DayOfWeek.FRIDAY, openingTime, closeTime),
-                buildOperatingHours(DayOfWeek.SATURDAY, openingTime.plusHours(4), closeTime.minusHours(1))
+                buildOperatingHours(DayOfWeek.SATURDAY, openingTime.plusHours(4), closeTime.minusHours(1)),
+                buildOperatingHours(DayOfWeek.SUNDAY, openingTime.minusHours(8), closeTime.minusHours(18))
         );
         operatingHoursRepository.saveAll(entities);
     }

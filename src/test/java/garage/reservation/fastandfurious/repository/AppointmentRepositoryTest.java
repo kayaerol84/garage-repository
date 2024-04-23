@@ -28,7 +28,6 @@ class AppointmentRepositoryTest {
     @Autowired
     private MechanicRepository mechanicRepository;
 
-    private Appointment appointment;
     private Mechanic mechanic;
 
     static LocalDateTime MONDAY_12_00 = LocalDateTime.of(2024, 4, 22, 12, 0, 0);
@@ -39,7 +38,7 @@ class AppointmentRepositoryTest {
         mechanic = buildMechanic("mechanic name");
         mechanicRepository.save(mechanic);
         // Initialize test data before each test method
-        appointment = buildAppointment(MONDAY_12_00, GarageOperationType.GENERAL_CHECK, mechanic);
+        Appointment appointment = buildAppointment(MONDAY_12_00, GarageOperationType.GENERAL_CHECK, mechanic);
         appointmentRepository.save(appointment);
     }
 

@@ -2,7 +2,7 @@ package garage.reservation.fastandfurious.resource;
 
 import garage.reservation.fastandfurious.domain.Mechanic;
 import garage.reservation.fastandfurious.domain.OperatingHours;
-import garage.reservation.fastandfurious.resource.dto.CreateMechanicRequest;
+import garage.reservation.fastandfurious.resource.dto.SaveMechanicRequest;
 import garage.reservation.fastandfurious.resource.dto.OperatingHoursResponse;
 import garage.reservation.fastandfurious.resource.dto.SaveOperatingHoursRequest;
 import garage.reservation.fastandfurious.resource.dto.MechanicResponse;
@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @RestController
@@ -31,15 +32,15 @@ public class GarageAdminResource {
     }
 
     @PostMapping("/mechanics")
-    public ResponseEntity<MechanicResponse> createMechanic(@RequestBody CreateMechanicRequest request){
+    public ResponseEntity<MechanicResponse> createMechanic(@RequestBody SaveMechanicRequest request) {
         Mechanic mechanic = mechanicService.saveMechanic(request.toMechanic());
         return ResponseEntity.ok(MechanicResponse.from(mechanic));
     }
 
     @PostMapping("/mechanics/{id}")
-    public ResponseEntity<MechanicResponse> updateMechanic(@PathVariable Long id, @RequestBody CreateMechanicRequest request){
+    public ResponseEntity<MechanicResponse> updateMechanic(@PathVariable Long id, @RequestBody SaveMechanicRequest request) {
         if (mechanicService.getById(id) != null) {
-            Mechanic mechanic = mechanicService.saveMechanic(request.toMechanic());
+            Mechanic mechanic = mechanicService.saveMechanic(request.toMechanic(id));
             return ResponseEntity.ok(MechanicResponse.from(mechanic));
         }
         return ResponseEntity.notFound().build();
@@ -53,16 +54,26 @@ public class GarageAdminResource {
     }
 
     @GetMapping("/mechanics/{id}")
-    public ResponseEntity<MechanicResponse> getMechanicsById(@PathVariable  Long id) {
+    public ResponseEntity<MechanicResponse> getMechanicsById(@PathVariable Long id) {
         Mechanic mechanic = mechanicService.getById(id);
         return ResponseEntity.ok(MechanicResponse.from(mechanic));
     }
 
     @PutMapping("/operatingHours/{id}")
     public ResponseEntity<OperatingHoursResponse> updateOperatingHours(@PathVariable Long id, @RequestBody SaveOperatingHoursRequest saveOperatingHoursRequest) {
-        OperatingHours operatingHours = operatingHoursService.updateOperatingHours();
+        if (operatingHoursService.getAll().stream().anyMatch(o -> Objects.equals(o.getId(), id))) {
+            OperatingHours operatingHours = operatingHoursService.saveOperatingHours(saveOperatingHoursRequest.toOperatingHours(id));
+            return ResponseEntity.ok(OperatingHoursResponse.from(operatingHours));
+        } else {
+            return ResponseEntity.notFound().build();
+        }
+    }
 
-        return ResponseEntity.ok(OperatingHoursResponse.from(operatingHours));
+    @PostMapping("/operatingHours")
+    public ResponseEntity<OperatingHoursResponse> addSpecificOperatingHours(@RequestBody SaveOperatingHoursRequest saveOperatingHoursRequest) {
+        OperatingHours operatingHours = operatingHoursService.saveOperatingHours(saveOperatingHoursRequest.toSpecificDateOperatingHours());
+
+        return ResponseEntity.ok(OperatingHoursResponse.fromSpecificDate(operatingHours));
     }
 
     @GetMapping("/operatingHours")

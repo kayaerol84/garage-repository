@@ -6,6 +6,7 @@ import garage.reservation.fastandfurious.domain.Mechanic;
 import garage.reservation.fastandfurious.domain.OperatingHours;
 import garage.reservation.fastandfurious.domain.Slot;
 import garage.reservation.fastandfurious.repository.AppointmentRepository;
+import garage.reservation.fastandfurious.service.exception.InvalidAppointmentDateTimeException;
 import garage.reservation.fastandfurious.service.exception.MechanicNotFoundException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -19,10 +20,16 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
+import static garage.reservation.fastandfurious.domain.DomainTestHelper.buildAppointment;
 import static garage.reservation.fastandfurious.domain.DomainTestHelper.buildMechanic;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -107,13 +114,31 @@ class ReservationServiceTest {
 
     @Test
     void createAppointmentShouldSuccessfullyBookTimeSlotForMechanic(){
-        when(mechanicService.getById(mechanicId)).thenReturn(buildMechanic("First Mech"));
+        Mechanic expectedMechanic = buildMechanic(1L, "First Mech");
+        when(mechanicService.getById(mechanicId)).thenReturn(expectedMechanic);
+        var expectedTime = MONDAY_22_04_12_00;
+        Appointment expectedAppointment = buildAppointment(expectedTime, GarageOperationType.GENERAL_CHECK, expectedMechanic);
+        when(appointmentRepository.save(any())).thenReturn(expectedAppointment);
+        doNothing().when(appointmentValidator).validate(any(), any(), any());
 
+        // execute
+        Appointment appointment = reservationService.createAppointment(mechanicId, GarageOperationType.GENERAL_CHECK, expectedTime);
+
+        // verify
+        assertEquals(expectedAppointment, appointment);
     }
 
     @Test
     void createAppointmentShouldFailWhenValidationThrowsException(){
 
+        Mechanic expectedMechanic = buildMechanic(1L, "First Mech");
+        when(mechanicService.getById(mechanicId)).thenReturn(expectedMechanic);
+        var expectedTime = MONDAY_22_04_12_00;
+
+        doThrow(InvalidAppointmentDateTimeException.class).when(appointmentValidator).validate(any(), any(), any());
+
+        // execute
+        assertThrows( InvalidAppointmentDateTimeException.class, () -> reservationService.createAppointment(mechanicId, GarageOperationType.GENERAL_CHECK, expectedTime));
     }
 
     @Test

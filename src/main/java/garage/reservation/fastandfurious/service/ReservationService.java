@@ -40,7 +40,7 @@ public class ReservationService {
         return appointment -> proposedStart.isBefore(appointment.getEndTime()) && proposedEnd.isAfter(appointment.getStartTime());
     }
 
-    private static List<Slot> calculateTimeSlots(GarageOperationType garageOperationType, LocalDate date, GarageOperatingDay operatingDay) {
+    private static List<Slot> calculateTimeSlots(GarageOperationType garageOperationType, GarageOperatingDay operatingDay) {
 
         LocalTime currentTime = operatingDay.getOpeningTime();
         long durationOfJobTypeInMinutes = (long) (garageOperationType.getDurationHours() * 60);
@@ -49,7 +49,7 @@ public class ReservationService {
 
         while (currentTime.plusMinutes(durationOfJobTypeInMinutes).isBefore(operatingDay.getClosingTime()) || currentTime.plusMinutes(durationOfJobTypeInMinutes).equals(operatingDay.getClosingTime())) {
 
-            LocalDateTime proposedStart = LocalDateTime.of(date, currentTime);
+            LocalDateTime proposedStart = LocalDateTime.of(operatingDay.getDate(), currentTime);
             LocalDateTime proposedEnd = proposedStart.plusMinutes(durationOfJobTypeInMinutes);
 
             // Check for overlapping appointments
@@ -76,8 +76,13 @@ public class ReservationService {
 
         GarageOperatingDay operatingDay = getGarageOperatingDayDetails(date, mechanicId);
 
+        // Garage is not operating that day [SUNDAY, Holiday]
+        if (operatingDay.isOff()) {
+            return Collections.emptyList();
+        }
+
         // Calculate time slots considering job duration
-        return calculateTimeSlots(garageOperationType, date, operatingDay);
+        return calculateTimeSlots(garageOperationType, operatingDay);
     }
 
     @Transactional
@@ -108,11 +113,20 @@ public class ReservationService {
         LocalTime openingTime = operationHours.getOpenTime();
         LocalTime closingTime = operationHours.getCloseTime();
 
+        if (operationHours.isOffDay()) {
+            return GarageOperatingDay.builder()
+                    .openingTime(openingTime)
+                    .closingTime(closingTime)
+                    .date(date)
+                    .build();
+        }
+
         // Fetch existing appointments
         List<Appointment> existingAppointments = appointmentRepository.findByMechanicBetweenGivenSlot(
                 mechanicId,
                 LocalDateTime.of(date, openingTime),
                 LocalDateTime.of(date, closingTime));
+
         return GarageOperatingDay.builder()
                 .appointments(existingAppointments)
                 .openingTime(openingTime)

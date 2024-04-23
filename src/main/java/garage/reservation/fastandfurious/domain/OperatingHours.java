@@ -28,5 +28,9 @@ public class OperatingHours {
     private LocalTime openTime;
     private LocalTime closeTime;
 
+    public boolean isOffDay() {
+        return this.closeTime.equals(this.openTime);
+    }
+
 }
 

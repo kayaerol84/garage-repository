@@ -30,8 +30,8 @@ public class OperatingHoursService {
                 .orElseThrow(() -> new OperatingHoursNotFoundException(date));
     }
 
-    public OperatingHours updateOperatingHours() {
-        return  null;
+    public OperatingHours saveOperatingHours(OperatingHours operatingHours) {
+        return operatingHoursRepository.save(operatingHours);
     }
 
     public List<OperatingHours> getAll() {

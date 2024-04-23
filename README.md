@@ -46,7 +46,19 @@ Or on Windows:
 ```bash
 gradlew.bat bootRun
 ```
-The server will start running on http://localhost:8080.
+The server will start running on http://localhost:8080. 
+
+The application will automatically create 2 Mechanics and Operating hours details of the Garage. You will be able to update by using the below-mentioned Admin endpoints.
+
+## TODO
+These could be added within the next stage of this project. 
+
+* Handling concurrency when multiple requests trying to book the same time slot
+* Customer information
+* Background job to move previous appointments to an archival DB
+* [Spring REST Docs](https://docs.spring.io/spring-restdocs/docs/current/reference/htmlsingle/)
+* ArchUnit tests
+* Logs
 
 ## Usage
 
@@ -68,10 +80,10 @@ The application provides the following RESTful endpoints:
     * mechanicId (required): The ID of the mechanic.
     * date (required): The date to check for availability (format: yyyy-mm-dd).
 
-Example request:
-```bash
-curl -X GET "http://localhost:8080/api/reservations/slots?jobType=TIRE_REPLACEMENT&mechanicId=1&date=2024-04-23"
-```
+  Example request:
+  ```bash
+  curl -X GET "http://localhost:8080/api/reservations/slots?jobType=TIRE_REPLACEMENT&mechanicId=1&date=2024-04-23"
+  ```
 
 * **POST /api/reservations/appointments**: Create a new appointment.
 
@@ -83,12 +95,12 @@ curl -X GET "http://localhost:8080/api/reservations/slots?jobType=TIRE_REPLACEME
       "startTime": "2024-04-23T10:00:00"
     }
     ```
-Example request:
-```bash
-curl -X POST -H "Content-Type: application/json" -d 
-' { "mechanicId": 1, "jobType": "GENERAL_CHECK", "startTime": "2024-04-23T10:00:00"}' 
-"http://localhost:8080/api/reservations/appointments"
-```
+  Example request:
+  ```bash
+  curl -X POST -H "Content-Type: application/json" -d 
+  ' { "mechanicId": 1, "jobType": "GENERAL_CHECK", "startTime": "2024-04-23T10:00:00"}' 
+  "http://localhost:8080/api/reservations/appointments"
+  ```
 
 ### ADMIN Endpoints
 * **POST** **/admin/garage/mechanics**: Creates a new mechanic
@@ -103,25 +115,67 @@ curl -X POST -H "Content-Type: application/json" -d
   }
   ```
   
-Example request:
-
-```bash
-curl --location 'http://localhost:8080/admin/garage/mechanics' \
---header 'Content-Type: application/json' \
---data '{
-    "name": "Third Mechanic",
-    "offDays": [
-        "TUESDAY",
-        "WEDNESDAY"
-    ]
-}'
-```
+  Example request:
+  
+  ```bash
+  curl --location 'http://localhost:8080/admin/garage/mechanics' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      "name": "Third Mechanic",
+      "offDays": [
+          "TUESDAY",
+          "WEDNESDAY"
+      ]
+  }'
+  ```
 * **GET /admin/garage/operatingHours**: To check operating hours configuration
 
-Example Request: 
-```bash
-curl --location 'http://localhost:8080/admin/garage/operatingHours'
-```
+  Example Request: 
+  ```bash
+  curl --location 'http://localhost:8080/admin/garage/operatingHours'
+  ```
+
+* **POST /admin/garage/operatingHours**: To create a new operating hour definition for a specific date
+  * Body:
+  * ```json
+    {
+      "openTime": "00:00:00",
+      "closeTime": "00:00:00",
+      "specificDate": "2024-05-06"    
+    }
+    ```
+
+  Example request:
+  ```bash
+  curl --location 'http://localhost:8080/admin/garage/operatingHours' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      "openTime": "00:00:00",
+      "closeTime": "00:00:00",
+      "specificDate": "2024-05-06"
+  }'
+  ```
+
+* **PUT /admin/garage/operatingHours/{id}**: To update an existing operating hour definition for a Day
+  * Body:
+  * ```json
+    {
+      "openTime": "09:00:00",
+      "closeTime": "18:00:00",
+      "dayOfWeek": "MONDAY"
+    }
+    ```
+
+  Example request:
+  ```bash
+  curl --location --request PUT 'http://localhost:8080/admin/garage/operatingHours/1' \
+  --header 'Content-Type: application/json' \
+  --data '{
+      "openTime": "09:00:00",
+      "closeTime": "18:00:00",
+      "dayOfWeek": "MONDAY"
+  }'
+  ```
 
 ### Running Tests
 
@@ -139,9 +193,3 @@ gradlew.bat test
 
 * Spring Boot - The framework used
 * Gradle - Dependency Management
-
-## TODO
-
-* ArchUnit tests
-* Handling concurrency when multiple requests trying to book the same time slot
-* Customer information
